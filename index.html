@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mahala · Calling in the temple builders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200;0,6..72,300;0,6..72,400;1,6..72,200;1,6..72,300&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#d6dce5; --haze:#faf4f0; --clay:#dbb497; --clay-2:#b89780; --wood:#d9c3a4; --wood-2:#a37f63;
+    --ink:#3b2f26; --ink-2:#7a6657; --line:rgba(163,127,99,.35);
+    --pink:#e9a9c9; --cyan:#9fd6e6; --mint:#a8e2c9; --lav:#c6b2e6; --gold:#f1cf8e; --lemon:#f4e6a8;
+    --t:900ms cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:auto}
+  body{margin:0;background:linear-gradient(180deg,#3f93b4 0,#5aa8c3 22%,#8cc6d6 40%,#c6e2e6 50%,#eadfce 55%,#e3c6a6 62%,var(--clay) 100%) fixed;color:var(--ink);font-family:Newsreader,Georgia,serif;font-size:18px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  canvas#stage{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);font-weight:300}
+
+  /* ---------- journey ---------- */
+  #journey{position:relative;z-index:1;height:860vh}
+  .ch{position:fixed;left:0;right:0;bottom:0;padding:0 22px calc(18px + env(safe-area-inset-bottom));opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease;pointer-events:none;z-index:2}
+  .ch.on{opacity:1;transform:none;pointer-events:auto}
+  .ch .in{max-width:560px;margin:0 auto;padding:22px 0 10px;position:relative}
+  .ch .in::before{content:"";position:absolute;inset:-60px -22px -24px;background:radial-gradient(75% 80% at 40% 58%,rgba(250,244,240,.95),rgba(250,244,240,.78) 45%,rgba(250,244,240,.0) 82%);z-index:-1;filter:blur(6px)}
+  @media(min-width:900px){.ch{bottom:auto;top:50%;transform:translateY(calc(-50% + 16px));left:7vw;right:auto;width:440px;padding:0}.ch.on{transform:translateY(-50%)}.ch .in{margin:0}}
+  .ch h1{font-weight:200;font-size:clamp(44px,12vw,78px);line-height:.94;letter-spacing:-.02em;margin:0 0 16px;font-variation-settings:"opsz" 72;text-wrap:balance}
+  .ch h2{font-weight:200;font-size:clamp(32px,8.5vw,56px);line-height:1;letter-spacing:-.015em;margin:0 0 12px;font-variation-settings:"opsz" 72;text-wrap:balance}
+  .ch i{font-style:italic;font-weight:200}
+  .ch h2.long{font-size:clamp(27px,6.6vw,42px);line-height:1.04}
+  @media(max-width:520px){.ch p{font-size:17.5px}}
+  .ch p{margin:0 0 10px;font-size:19px;font-weight:300;max-width:34rem}
+  .ch .mono{display:block;margin-bottom:10px}
+  .sacred{display:grid;grid-template-columns:auto 1fr;gap:1px 12px;font-size:16px;font-weight:300;margin-top:6px}
+  .sacred i{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-2);padding-top:4px;letter-spacing:.1em}
+  .scrollhint{position:fixed;left:0;right:0;bottom:12px;text-align:center;z-index:2;transition:opacity .5s}
+  .scrollhint span{display:inline-block;width:1px;height:38px;background:var(--ink-2);opacity:.6;animation:drop 2.2s ease-in-out infinite}
+  @keyframes drop{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+  .btn{appearance:none;background:rgba(250,244,240,.55);color:var(--ink);border:1px solid var(--wood-2);font:inherit;font-variant:small-caps;letter-spacing:.16em;font-size:21px;padding:14px 22px;cursor:pointer;display:inline-flex;gap:26px;align-items:center;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .3s,color .3s;border-radius:2px}
+  .btn:hover{background:var(--ink);color:var(--haze)}
+  .btn em{font-style:normal;font-variant:normal;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+  .btn.ghost{background:transparent;border:0;padding:6px 0;font-size:15px;color:var(--ink-2);text-decoration:underline;text-underline-offset:4px;backdrop-filter:none;-webkit-backdrop-filter:none}
+  .btn.ghost:hover{background:transparent;color:var(--ink)}
+
+  /* ---------- form ---------- */
+  #app{display:none;position:relative;z-index:1;min-height:100vh}
+  body.form #journey,body.form .ch,body.form .scrollhint{display:none}
+  body.form #app{display:block}
+  .sheet{max-width:640px;margin:0 auto;padding:26px 20px 120px;min-height:100vh;background:linear-gradient(180deg,rgba(250,244,240,.0) 0,rgba(250,244,240,.86) 160px,rgba(250,244,240,.92) 100%)}
+  @media(min-width:900px){.sheet{margin:0 0 0 auto;width:52vw;max-width:none;padding:70px 8vw 140px 6vw;background:linear-gradient(90deg,rgba(250,244,240,.0) 0,rgba(250,244,240,.88) 120px,rgba(250,244,240,.93) 100%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}.col{max-width:560px}}
+  .caption{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:26px}
+  .caption.live{position:sticky;top:0;z-index:2;background:rgba(250,244,240,.9);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding-top:8px;margin-top:-8px}
+  h1.f{font-weight:200;font-size:clamp(46px,12vw,72px);line-height:.95;letter-spacing:-.02em;margin:0 0 22px;font-variation-settings:"opsz" 72;text-wrap:balance}
+  h2.f{font-weight:200;font-size:clamp(38px,10vw,58px);line-height:.98;letter-spacing:-.015em;margin:0 0 20px;font-variation-settings:"opsz" 72;text-wrap:balance}
+  h1.f i,h2.f i{font-style:italic;font-weight:200}
+  p{margin:0 0 14px;max-width:34rem}
+  .lead{font-size:21px;font-weight:300}
+  .meta{font-style:italic;font-weight:300;color:var(--ink-2);font-size:17px}
+  .screen{display:none}
+  .screen.active{display:block;animation:in var(--t) both}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .f{margin:0 0 28px}
+  .f label.q{display:block;font-family:Newsreader,Georgia,serif;font-variant:small-caps;font-size:15px;letter-spacing:.1em;color:var(--ink);margin-bottom:4px}
+  .f .hint{display:block;font-size:16px;color:var(--ink-2);margin:-2px 0 8px;font-style:italic;font-weight:300}
+  .f input[type=text],.f input[type=email],.f input[type=tel],.f textarea{width:100%;border:0;border-bottom:1px solid var(--wood-2);background:transparent;color:var(--ink);font:inherit;font-size:20px;padding:6px 0 8px;outline:none;transition:border-color .3s;border-radius:0}
+  .f textarea{min-height:104px;resize:none;line-height:1.55;font-size:19px;background-image:repeating-linear-gradient(180deg,transparent 0,transparent calc(1.55em - 1px),var(--line) calc(1.55em - 1px),var(--line) 1.55em);background-attachment:local;padding-top:0}
+  .f input:focus,.f textarea:focus{border-bottom-width:2px;border-color:var(--ink)}
+  .f.invalid input,.f.invalid textarea{border-color:#b8575a}
+  .f .err{display:none;font-family:"IBM Plex Mono",monospace;font-size:12px;color:#b8575a;margin-top:6px;letter-spacing:.04em}
+  .f.invalid .err{display:block}
+  .req{color:var(--ink-2)}
+  .sh{font-weight:300;font-size:28px;line-height:1.1;margin:40px 0 16px;display:flex;gap:14px;align-items:baseline;font-variation-settings:"opsz" 40}
+  .sh span{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink-2);letter-spacing:.1em}
+  .tiles{display:grid;grid-template-columns:1fr;gap:0;border-top:1px solid var(--line)}
+  .tiles.two{grid-template-columns:1fr 1fr;column-gap:22px}
+  @media(max-width:420px){.tiles.two{grid-template-columns:1fr}}
+  .tiles label{position:relative;cursor:pointer;border-bottom:1px solid var(--line)}
+  .tiles input{position:absolute;opacity:0;pointer-events:none}
+  .tiles span{display:flex;gap:10px;align-items:baseline;width:100%;padding:11px 0;font-size:17px;line-height:1.25;transition:color .3s}
+  .tiles span::before{content:attr(data-n);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-2);flex:0 0 20px;font-weight:300}
+  .tiles span::after{content:"";flex:0 0 14px;height:14px;border:1px solid var(--wood-2);margin-left:auto;align-self:center;border-radius:50%;transition:background .35s,border-color .35s,box-shadow .35s}
+  .tiles input[type=radio] + span::after{border-radius:0;transform:rotate(45deg) scale(.85)}
+  .tiles input:checked + span::after{background:var(--c,var(--ink));border-color:var(--c,var(--ink));box-shadow:0 0 14px 2px var(--c,transparent)}
+  .tiles input:focus-visible + span{outline:2px solid var(--ink);outline-offset:2px}
+  .tiles small{color:var(--ink-2);font-size:15px;font-style:italic;margin-left:6px;font-weight:300}
+  .actions{display:flex;flex-direction:column;gap:14px;align-items:flex-start;margin-top:34px}
+  .rosette{width:56px;height:56px;display:block}
+  .rosette path,.rosette circle{stroke:var(--wood-2);stroke-width:.35;fill:none;transition:fill .5s}
+  .rosette .on{fill:var(--c);fill-opacity:.8}
+  .rosette .cons{stroke:var(--wood-2);stroke-width:.16;stroke-dasharray:.8 1.1;fill:none;opacity:.6}
+  .rosette .arc{stroke:var(--wood-2);stroke-width:.14;fill:none;opacity:.45}
+  .plateframe{padding:12px 0 10px;margin:0 0 30px;position:relative;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .plateframe .pn{font-size:36px;font-weight:200;line-height:1;position:absolute;left:0;top:12px;font-variation-settings:"opsz" 72}
+  .plateframe .rosette.lg{margin:26px auto 12px;width:86%;height:auto;aspect-ratio:1;filter:drop-shadow(0 18px 24px rgba(163,127,99,.25))}
+  .plate{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);text-align:center;margin:0;padding-top:8px;font-weight:300}
+  .plates{display:flex;flex-wrap:wrap;gap:18px 22px;margin:6px 0 26px}
+  .plates figure{margin:0;width:120px}
+  .plates .rosette{width:88px;height:88px}
+  .plates figcaption{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-top:4px;font-weight:300}
+  .ledger ul{padding:0;margin:0;border-top:1px solid var(--line)}
+  .ledger li{list-style:none;display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+  .ledger .no{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-2);font-weight:300}
+  .ledger .nm{font-size:22px;line-height:1.1}
+  .ledger .nm small{display:block;font-size:15px;color:var(--ink-2);font-style:italic}
+  .ledger .tools button{background:none;border:0;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);cursor:pointer;padding:6px 0 6px 12px;text-decoration:underline;text-underline-offset:3px}
+  .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  .err-send{display:none;font-family:"IBM Plex Mono",monospace;font-size:12px;color:#b8575a;margin-top:14px}
+  .demo-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:5;background:var(--ink);color:var(--haze);font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:3px 10px}
+  .demo .demo-banner{display:block}
+  @media (prefers-reduced-motion:reduce){.screen.active{animation:none}.scrollhint span{animation:none}}
+</style>
+</head>
+<body>
+<canvas id="stage" aria-hidden="true"></canvas>
+
+<!-- ===== THE DESCENT (scroll) ===== -->
+<div id="journey" aria-label="Scroll to enter"></div>
+
+<section class="ch" data-from="0" data-to="0.10">
+  <div class="in"><span class="mono">Mahala · AfrikaBurn 2027</span><h1>Calling in the <i>temple builders</i></h1><p>Scroll to enter.</p></div>
+</section>
+<section class="ch" data-from="0.14" data-to="0.30">
+  <div class="in"><h2 class="long">A temple is forged in the fires of devoted hearts, <i>and raised by loving hands acting in service.</i></h2><p>But before entering the field, someone is called. We need you to help sound that call!</p></div>
+</section>
+<section class="ch" data-from="0.36" data-to="0.52">
+  <div class="in"><h2 class="long">Who are the special souls you know <i>who belong in our marvelous midst?</i></h2><p>Hearts open wide. Hands eager to build. That special glimmer in their eye. Ready to laugh the loud cosmic belly laugh together in a chorus of reverential play.</p></div>
+</section>
+<section class="ch" data-from="0.56" data-to="0.63">
+  <div class="in"><span class="mono">I · The struts</span><h2>All in, from <i>build to burn</i></h2><p>Full dedication to the magical co-creation of build week. Present and connected throughout the cosmic chaos of the Burn. Playful and committed all the way through to breakdown.</p></div>
+</section>
+<section class="ch" data-from="0.64" data-to="0.71">
+  <div class="in"><span class="mono">II · The lattice</span><h2>Craft as <i>spiritual practice</i></h2><p>Connected deeply to one another, and connected to the process as an act of reverence, an act of celebration, dedicating their gifts with both revelry and devotion.</p></div>
+</section>
+<section class="ch" data-from="0.72" data-to="0.79">
+  <div class="in"><span class="mono">III · The petals</span><h2><i>Ubuntu.</i> I am because we are.</h2><p>Recognising that the seed we plant, and the sproutling we nurture, is here to blossom and offer its fragrance to one and all, an expression of ultimate gratitude and unconditional love.</p></div>
+</section>
+<section class="ch" data-from="0.80" data-to="0.88">
+  <div class="in"><span class="mono">IV · The light</span><h2 class="long">We are calling in souls who live the Mahala <i>SACRED agreements</i></h2>
+    <div class="sacred"><i>S</i><span>Seeking understanding before interpretation</span><i>A</i><span>Assuming good intent</span><i>C</i><span>Choosing presence over reaction</span><i>R</i><span>Radical responsibility for what we feel</span><i>E</i><span>Empowered expression of our needs</span><i>D</i><span>Discernment of gossip as distortion</span></div></div>
+</section>
+<section class="ch" data-from="0.91" data-to="1.01">
+  <div class="in"><h2>Name these beings <i>here.</i></h2><p>They will be receiving personalised invitations, so take your time in writing a submission for each person, explaining their gifts and why they should be part of this co-creation. Channel your inner poet to craft a message that will crack them open and call them forth.</p>
+    <div class="actions" style="margin-top:18px"><button class="btn" id="beginBtn">Begin<em>fol. 1</em></button></div>
+    <p class="meta" style="margin-top:16px;font-size:15px">Read only by the Mahala leads, only to write each invitation. Never shared, never used for anything else.</p></div>
+</section>
+<div class="scrollhint" id="scrollhint"><span></span></div>
+
+<!-- ===== THE FORM ===== -->
+<main id="app">
+<div class="sheet"><div class="col">
+
+  <section class="screen active" data-step="you">
+    <div class="caption"><span class="mono">The messenger</span><span class="mono">fol. 1</span></div>
+    <h2 class="f">Who is sending <i>the call?</i></h2>
+    <div class="f" data-required><label class="q" for="r_name">Your name <span class="req">*</span></label><input type="text" id="r_name" autocomplete="name"><div class="err">Needed, so the call has a sender</div></div>
+    <div class="f" data-required data-email><label class="q" for="r_email">Your email <span class="req">*</span></label><input type="email" id="r_email" autocomplete="email" inputmode="email"><div class="err">A valid email, so we can follow up with you</div></div>
+    <div class="f"><label class="q">Your role in Mahala</label>
+      <div class="tiles" data-radio="r_role">
+        <label><input type="radio" name="r_role" value="Camp lead"><span data-n="01">Camp lead</span></label>
+        <label><input type="radio" name="r_role" value="Camp member"><span data-n="02">Camp member</span></label>
+      </div></div>
+    <div class="actions"><button class="btn" data-next>Name a soul<em>fol. 2</em></button><button class="btn ghost" id="backToJourney">Back to the temple</button></div>
+  </section>
+
+  <section class="screen" data-step="n1">
+    <div class="caption"><span class="mono" data-soul-count>Soul 01</span><span class="mono">fol. 2 · who they are</span></div>
+    <h2 class="f">Who <i>are they?</i></h2>
+    <div class="f" data-required><label class="q" for="n_name">Full name <span class="req">*</span></label><input type="text" id="n_name"><div class="err">Who are we inviting?</div></div>
+    <div class="f"><label class="q" for="n_called">What people call them</label><input type="text" id="n_called"></div>
+    <div class="f" data-required data-email><label class="q" for="n_email">Email <span class="req">*</span></label><input type="email" id="n_email" inputmode="email"><div class="err">The invitation needs somewhere to land</div></div>
+    <div class="f"><label class="q" for="n_phone">WhatsApp</label><input type="tel" id="n_phone" inputmode="tel"></div>
+    <div class="f" data-required><label class="q" for="n_location">Based in <span class="req">*</span></label><input type="text" id="n_location"><div class="err">City and country</div></div>
+    <div class="f"><label class="q" for="n_social">Instagram or website</label><input type="text" id="n_social"></div>
+    <div class="f"><label class="q" for="n_known">How you know them, and for how long</label><input type="text" id="n_known"></div>
+    <div class="f"><label class="q">Burn experience</label>
+      <div class="tiles" data-radio="n_burn">
+        <label><input type="radio" name="n_burn" value="AfrikaBurn regular"><span data-n="01">AfrikaBurn regular</span></label>
+        <label><input type="radio" name="n_burn" value="Other burns"><span data-n="02">Other burns</span></label>
+        <label><input type="radio" name="n_burn" value="Never been, born for it"><span data-n="03">Never been<small>born for it</small></span></label>
+        <label><input type="radio" name="n_burn" value="Not sure"><span data-n="04">Not sure</span></label>
+      </div></div>
+    <div class="actions"><button class="btn" data-next>Continue<em>fol. 3</em></button><button class="btn ghost" data-back>Back</button></div>
+  </section>
+
+  <section class="screen" data-step="n2">
+    <div class="caption live"><span class="mono" data-soul-name>Their essence</span><span class="mono">fol. 3</span><svg class="rosette" id="ros_n2" viewBox="-50 -50 100 100" aria-hidden="true"></svg></div>
+    <h2 class="f">Their story, <i>their light</i></h2>
+    <p class="meta">Each gift and sign you choose lights a pane in their temple, seen from above.</p>
+    <h3 class="sh"><span>I</span>Their story</h3>
+    <div class="f" data-required><label class="q" for="n_story">Their story <span class="req">*</span></label><span class="hint">Where they come from, what they have walked through, what shaped them into someone you want beside you on the playa.</span><textarea id="n_story"></textarea><div class="err">A few lines is enough. This is the heart of the invitation.</div></div>
+    <div class="f" data-required><label class="q" for="n_moment">The moment you knew <span class="req">*</span></label><span class="hint">One moment with them when something in you said: this one is Mahala.</span><textarea id="n_moment"></textarea><div class="err">Even a small moment carries a lot</div></div>
+    <h3 class="sh"><span>II</span>Their gifts</h3>
+    <div class="f"><label class="q">Tap everything they bring</label><div class="tiles two" data-multi="n_gifts" id="gifts"></div></div>
+    <div class="f"><label class="q" for="n_gifts_more">More about their gifts</label><textarea id="n_gifts_more" style="min-height:70px"></textarea></div>
+    <h3 class="sh"><span>III</span>The Mahala signs</h3>
+    <div class="f"><label class="q">Every one that rings true</label><div class="tiles" data-multi="n_signs" id="signs"></div></div>
+    <h3 class="sh"><span>IV</span>Archetype and element</h3>
+    <div class="f"><label class="q">The archetype that moves through them most</label><div class="tiles" data-radio="n_archetype" id="arch"></div></div>
+    <div class="f"><label class="q">Their element</label><div class="tiles two" data-radio="n_element" id="elem"></div></div>
+    <div class="actions"><button class="btn" data-next>Continue<em>fol. 4</em></button><button class="btn ghost" data-back>Back</button></div>
+  </section>
+
+  <section class="screen" data-step="n3">
+    <div class="caption live"><span class="mono" data-soul-name>Their invitation</span><span class="mono">fol. 4</span><svg class="rosette" id="ros_n3" viewBox="-50 -50 100 100" aria-hidden="true"></svg></div>
+    <h2 class="f">What should <i>their invitation</i> say?</h2>
+    <div class="f"><label class="q" for="n_words">The words that would make their heart leap</label><span class="hint">Speak as if they will read it.</span><textarea id="n_words"></textarea></div>
+    <div class="f"><label class="q" for="n_calling">What they are being called toward right now</label><span class="hint">A chapter, a threshold, a dream they keep circling.</span><textarea id="n_calling" style="min-height:80px"></textarea></div>
+    <div class="f"><label class="q">Could they make it to South Africa for AfrikaBurn 2027?</label>
+      <div class="tiles" data-radio="n_sa">
+        <label><input type="radio" name="n_sa" value="Already in South Africa"><span data-n="01">Already in South Africa</span></label>
+        <label><input type="radio" name="n_sa" value="Likely"><span data-n="02">Likely<small>they travel for this kind of magic</small></span></label>
+        <label><input type="radio" name="n_sa" value="A journey, but possible"><span data-n="03">A journey, but possible</span></label>
+        <label><input type="radio" name="n_sa" value="No idea"><span data-n="04">No idea</span></label>
+      </div></div>
+    <div class="f"><label class="q">May we say you sent the call?</label>
+      <div class="tiles" data-radio="n_mention">
+        <label><input type="radio" name="n_mention" value="Yes, mention me"><span data-n="01">Yes, tell them</span></label>
+        <label><input type="radio" name="n_mention" value="Keep it a mystery"><span data-n="02">Keep it a mystery</span></label>
+      </div></div>
+    <div class="f"><label class="q">Would you record a 30 second voice note for their invitation?</label>
+      <div class="tiles" data-radio="n_voice">
+        <label><input type="radio" name="n_voice" value="Yes"><span data-n="01">Yes</span></label>
+        <label><input type="radio" name="n_voice" value="Maybe"><span data-n="02">Maybe</span></label>
+        <label><input type="radio" name="n_voice" value="Not this time"><span data-n="03">Not this time</span></label>
+      </div></div>
+    <div class="f"><label class="q" for="n_mindful">Anything to be mindful of</label><textarea id="n_mindful" style="min-height:60px"></textarea></div>
+    <div class="hp" aria-hidden="true"><label>Leave empty<input type="text" id="hp_field" tabindex="-1" autocomplete="off"></label></div>
+    <div class="actions"><button class="btn" id="receiveBtn">Send their light<em>fol. 5</em></button><button class="btn ghost" data-back>Back</button></div>
+  </section>
+
+  <section class="screen" data-step="received">
+    <div class="caption"><span class="mono">Received</span><span class="mono">fol. 5 · the ledger</span></div>
+    <div class="plateframe"><span class="pn" id="plateNo">Pl. I</span><svg class="rosette lg" id="ros_large" viewBox="-50 -50 100 100" aria-hidden="true"></svg><p class="plate" id="plateCap">The temple from above</p></div>
+    <h2 class="f" id="receivedTitle"><i>Their</i> temple</h2>
+    <p>Who else belongs in the temple?</p>
+    <div class="ledger"><ul id="soulList"></ul></div>
+    <div class="actions"><button class="btn" id="anotherBtn">Call in another soul<em>fol. 2</em></button><button class="btn" id="sealSendBtn">Seal and send<em>fol. 6</em></button></div>
+    <p class="err-send" id="sendErr">Something got lost in the ether. Try again in a moment; your answers are still here.</p>
+  </section>
+
+  <section class="screen" data-step="done">
+    <div class="caption"><span class="mono">The call is out</span><span class="mono">fol. 6</span></div>
+    <h1 class="f">Thank you. <i>The call is out.</i></h1>
+    <div class="plates" id="donePlates"></div>
+    <p class="lead" id="doneLine">They are in the ledger. We write each invitation from what you told us, and the invitations go out at the end of October.</p>
+    <p>Keep it a surprise. If another name arrives tomorrow, come back and add them.</p>
+    <p style="font-style:italic;font-weight:200;font-size:26px;margin-top:30px">I am because we are.</p>
+    <div class="actions"><button class="btn ghost" id="restartBtn">Nominate more souls</button></div>
+  </section>
+
+</div></div>
+</main>
+<div class="demo-banner">Preview · nothing is sent from here</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+/* ================= CONFIG ================= */
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9hE1X_QETwBCUOm0PxAFe9T4opCqD-IZQUdoQZtuhTkKGioNO9LmzLLNkMwSRqZVS/exec'; // only if hosted outside Apps Script
+
+/* ================= THE TEMPLE (from the real parameters) =================
+   N = 18 fold polar zonohedron, strut 1024 mm, widest diameter 9540 mm.
+   Fitting those: generator radius 828 mm, rise 602 mm; the built Zome is rings 7 to 18,
+   which gives base 8965 mm, widest 9540 mm at ring 9, height 6623 mm. Exactly Chris's numbers. */
+var N=18, GEN_R=0.8283, GEN_Z=0.6021, RING0=7;
+var HOLO=['#e9a9c9','#9fd6e6','#a8e2c9','#c6b2e6','#f1cf8e','#f4e6a8'];
+var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var T3 = (typeof THREE!=='undefined');
+var scene, camera, renderer, temple={}, clock, groundMat, holoMats=[], progress=0, smooth=0, mode='journey';
+
+function V(k,j){ // vertex ring j, column k, relative to ring RING0 at ground
+  var x=0,y=0,z=0;
+  for(var i=0;i<j;i++){var a=2*Math.PI*((k+i)%N)/N; x+=GEN_R*Math.cos(a); z+=GEN_R*Math.sin(a);}
+  y=(j-RING0)*GEN_Z;
+  // the sum of j consecutive generators lies on a circle; recentre so the axis is x=z=0
+  var cx=0,cz=0; for(i=0;i<j;i++){var b=2*Math.PI*((k+i)%N)/N; cx+=Math.cos(b); cz+=Math.sin(b);}
+  var ang=Math.atan2(cz,cx), R=Math.hypot(x,z);
+  return new THREE.Vector3(R*Math.cos(ang), y, R*Math.sin(ang));
+}
+function canvasTex(draw,size){var c=document.createElement('canvas');c.width=c.height=size||256;var g=c.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,c.width,c.height);g.fillStyle='#fff';g.strokeStyle='#fff';draw(g,c.width);var t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t;}
+function star(g,cx,cy,ro,ri,n,rot){g.beginPath();for(var i=0;i<2*n;i++){var r=i%2?ri:ro,a=i*Math.PI/n-Math.PI/2+(rot||0);g.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));}g.closePath();}
+/* lower rings: girih star lattice (solid wood with star cut-outs outlined) */
+function filigreeLower(){return canvasTex(function(g,S){
+  g.lineWidth=14; g.strokeRect(0,0,S,S);
+  for(var y=0;y<2;y++)for(var x=0;x<2;x++){var cx=64+x*128,cy=64+y*128; g.lineWidth=9; star(g,cx,cy,58,24,8); g.stroke(); star(g,cx,cy,58,24,8,Math.PI/8); g.stroke(); g.beginPath(); g.arc(cx,cy,10,0,7); g.fill();}
+  g.lineWidth=8; g.beginPath(); g.moveTo(0,128); g.lineTo(256,128); g.moveTo(128,0); g.lineTo(128,256); g.stroke();});}
+/* upper rings: lens (vesica) tracery with round holes, as in the render's crown */
+function filigreeUpper(){return canvasTex(function(g,S){
+  g.fillStyle='#fff'; g.fillRect(0,0,S,S); g.fillStyle='#000';
+  g.beginPath(); g.moveTo(128,18); g.quadraticCurveTo(222,128,128,238); g.quadraticCurveTo(34,128,128,18); g.fill();
+  g.fillStyle='#fff'; g.beginPath(); g.moveTo(128,46); g.quadraticCurveTo(196,128,128,210); g.quadraticCurveTo(60,128,128,46); g.fill();
+  g.fillStyle='#000'; g.beginPath(); g.arc(128,128,30,0,7); g.fill();
+  [[40,40],[216,40],[40,216],[216,216]].forEach(function(p){g.beginPath();g.arc(p[0],p[1],20,0,7);g.fill();});
+  g.fillStyle='#fff'; for(var i=0;i<8;i++){var a=i*Math.PI/4; g.fillRect(128+Math.cos(a)*30-3,128+Math.sin(a)*30-3,6,6);} });}
+/* tracery laid over each stained-glass pane: an eight-point star inside a rhombus frame */
+function traceryTex(){return canvasTex(function(g,S){
+  g.lineWidth=16; g.strokeRect(0,0,S,S);
+  g.lineWidth=9; star(g,128,128,108,46,8); g.stroke(); star(g,128,128,108,46,8,Math.PI/8); g.stroke();
+  g.lineWidth=7; g.beginPath(); g.arc(128,128,34,0,7); g.stroke();});}
+/* petal gridshell: diagonal laths crossing */
+function petalTex(){return canvasTex(function(g,S){
+  g.lineWidth=13; for(var i=-10;i<=20;i++){var o=i*S/10; g.beginPath(); g.moveTo(o,0); g.lineTo(o+S,S); g.stroke(); g.beginPath(); g.moveTo(o,S); g.lineTo(o+S,0); g.stroke();}
+  g.lineWidth=12; g.beginPath(); g.moveTo(S/2,0); g.lineTo(S/2,S); g.stroke();},512);}
+var GLASS=['#d64fa6','#8a58d6','#2ea3cc','#4cb874','#e8c23f','#ea8a3a','#4a7fe0'];
+function holoMaterial(hex){
+  var m=new THREE.ShaderMaterial({transparent:true,side:THREE.DoubleSide,depthWrite:false,
+    uniforms:{t:{value:0},glow:{value:1},col:{value:new THREE.Color(hex)}},
+    vertexShader:'varying vec3 vN;varying vec3 vV;varying vec3 vW;void main(){vN=normalize(normalMatrix*normal);vec4 w=modelMatrix*vec4(position,1.0);vW=w.xyz;vec4 mv=viewMatrix*w;vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}',
+    fragmentShader:'uniform float t;uniform float glow;uniform vec3 col;varying vec3 vN;varying vec3 vV;varying vec3 vW;'+
+      'void main(){float fr=abs(dot(normalize(vN),normalize(vV)));float ripple=0.92+0.08*sin(vW.y*9.0+vW.x*5.0+t*0.6);'+
+      'vec3 c=col*(0.62+0.5*glow)*ripple+vec3(1.0,0.95,0.85)*pow(1.0-fr,3.0)*0.35;gl_FragColor=vec4(c,0.82);}'});
+  holoMats.push(m); return m;
+}
+function buildTemple(){
+  var g=new THREE.Group(); temple.group=g;
+  var wood=new THREE.MeshStandardMaterial({color:0xa9794a,roughness:.78,metalness:0});
+  var woodDark=new THREE.MeshStandardMaterial({color:0x83592f,roughness:.82});
+  var woodPale=new THREE.MeshStandardMaterial({color:0xcfae80,roughness:.8});
+  var lowMat=new THREE.MeshStandardMaterial({color:0xc69f6c,roughness:.8,alphaMap:filigreeLower(),transparent:true,alphaTest:.5,side:THREE.DoubleSide});
+  var upMat=new THREE.MeshStandardMaterial({color:0xc69f6c,roughness:.8,alphaMap:filigreeUpper(),transparent:true,alphaTest:.5,side:THREE.DoubleSide});
+  var trMat=new THREE.MeshStandardMaterial({color:0xbf9663,roughness:.8,alphaMap:traceryTex(),transparent:true,alphaTest:.5,side:THREE.DoubleSide});
+  var glassBy={}; GLASS.forEach(function(h){glassBy[h]=holoMaterial(h)});
+  /* struts */
+  var strutGeo=new THREE.BoxGeometry(.07,1,.1); var count=N*(N-RING0);
+  var struts=new THREE.InstancedMesh(strutGeo,wood,count); var m4=new THREE.Matrix4(), up=new THREE.Vector3(0,1,0), q=new THREE.Quaternion(), s3=new THREE.Vector3(1,1,1); var idx=0;
+  for(var j=RING0;j<N;j++)for(var k=0;k<N;k++){var a=V(k,j), b=V(k,j+1); var mid=a.clone().add(b).multiplyScalar(.5), dir=b.clone().sub(a); var len=dir.length(); q.setFromUnitVectors(up,dir.normalize()); s3.set(1,len,1); m4.compose(mid,q,s3); struts.setMatrixAt(idx,m4); idx++;}
+  struts.castShadow=true; g.add(struts); temple.struts=struts; temple.strutBase=[]; for(var i=0;i<count;i++){var mm=new THREE.Matrix4(); struts.getMatrixAt(i,mm); temple.strutBase.push(mm);}
+  /* panels: rings 9 to 12 are stained glass, 8 and 13 alternate, below is star lattice, above is lens tracery */
+  temple.panels=[];
+  for(j=RING0;j<N-1;j++)for(k=0;k<N;k++){
+    var p0=V(k,j),p1=V(k,j+1),p2=V((k-1+N)%N,j+2),p3=V((k-1+N)%N,j+1);
+    var geo=new THREE.BufferGeometry(); var arr=new Float32Array([p0.x,p0.y,p0.z,p1.x,p1.y,p1.z,p2.x,p2.y,p2.z,p0.x,p0.y,p0.z,p2.x,p2.y,p2.z,p3.x,p3.y,p3.z]);
+    geo.setAttribute('position',new THREE.BufferAttribute(arr,3)); geo.setAttribute('uv',new THREE.BufferAttribute(new Float32Array([0,0,1,0,1,1,0,0,1,1,0,1]),2)); geo.computeVertexNormals();
+    var isHolo=(j>=9&&j<=12)||((j===8||j===13)&&(k%2===0));
+    var c=p0.clone().add(p1).add(p2).add(p3).multiplyScalar(.25); var nrm=new THREE.Vector3(c.x,0,c.z).normalize();
+    var mesh;
+    if(isHolo){ mesh=new THREE.Mesh(geo,glassBy[GLASS[(k*3+j*5)%GLASS.length]]); var tr=new THREE.Mesh(geo,trMat); tr.position.copy(nrm).multiplyScalar(0.025); tr.castShadow=true; mesh.add(tr); }
+    else { mesh=new THREE.Mesh(geo,j>=13?upMat:lowMat); mesh.castShadow=true; }
+    mesh.userData={center:c,normal:nrm,holo:isHolo,ring:j};
+    g.add(mesh); temple.panels.push(mesh);
+  }
+  /* stupa: drum, bulb with a sun disc, rings, spire, star finial */
+  var apexY=(N-RING0)*GEN_Z; var stupa=new THREE.Group();
+  var drum=new THREE.Mesh(new THREE.CylinderGeometry(.5,.62,.3,32),woodPale); stupa.add(drum);
+  var ring1=new THREE.Mesh(new THREE.TorusGeometry(.5,.05,10,40),wood); ring1.rotation.x=Math.PI/2; ring1.position.y=.16; stupa.add(ring1);
+  var bulb=new THREE.Mesh(new THREE.SphereGeometry(.42,32,20),woodPale); bulb.scale.set(1,1.05,1); bulb.position.y=.62; stupa.add(bulb);
+  var sun=new THREE.Mesh(new THREE.CircleGeometry(.12,24),new THREE.MeshStandardMaterial({color:0xd9a441,roughness:.4,metalness:.5,side:THREE.DoubleSide})); sun.position.set(0,.66,.415); stupa.add(sun);
+  var neck=new THREE.Mesh(new THREE.CylinderGeometry(.13,.2,.3,20),wood); neck.position.y=1.12; stupa.add(neck);
+  for(var r=0;r<3;r++){var rr=new THREE.Mesh(new THREE.TorusGeometry(.14-r*.025,.03,8,24),woodPale); rr.rotation.x=Math.PI/2; rr.position.y=1.32+r*.16; stupa.add(rr);}
+  var spire=new THREE.Mesh(new THREE.ConeGeometry(.1,1.1,20),woodPale); spire.position.y=2.1; stupa.add(spire);
+  var fin=new THREE.Mesh(new THREE.OctahedronGeometry(.11),new THREE.MeshStandardMaterial({color:0xd9a441,roughness:.35,metalness:.6})); fin.position.y=2.75; stupa.add(fin);
+  stupa.position.y=apexY-.08; stupa.traverse(function(o){o.castShadow=true}); g.add(stupa); temple.stupa=stupa;
+  /* door: a pointed arch frame at the front, between two petals */
+  var baseR=V(0,RING0).length(); var door=new THREE.Group();
+  function archPts(w,h,spring){var pts=[]; pts.push(new THREE.Vector3(-w,0,0)); pts.push(new THREE.Vector3(-w,spring,0)); for(var s=1;s<=10;s++){var tt=s/10; pts.push(new THREE.Vector3(-w*(1-tt)*(1-tt*0.15),spring+(h-spring)*Math.sin(tt*Math.PI/2),0));} for(s=9;s>=0;s--){var u2=s/10; pts.push(new THREE.Vector3(w*(1-u2)*(1-u2*0.15),spring+(h-spring)*Math.sin(u2*Math.PI/2),0));} pts.push(new THREE.Vector3(w,spring,0)); pts.push(new THREE.Vector3(w,0,0)); return pts;}
+  door.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(archPts(.95,3.0,1.6)),120,.075,8,false),wood));
+  door.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(archPts(.78,2.7,1.5)),120,.04,6,false),woodPale));
+  door.position.set(0,0,baseR+0.05); door.traverse(function(o){o.castShadow=true}); g.add(door); temple.door=door;
+  /* petals: six cupped gridshell leaves, door at the front between two of them */
+  temple.petals=[];
+  var pTex=petalTex(); var petalMat=new THREE.MeshStandardMaterial({color:0xc29b68,roughness:.8,alphaMap:pTex,transparent:true,alphaTest:.5,side:THREE.DoubleSide});
+  var U=24,VV=40, W=2.0, L=4.6;
+  function petalPoint(u,v){ // u in [-1,1] across, v in [0,1] base to tip; local +z outward, +y up
+    var half=W*Math.pow(Math.sin(Math.PI*(0.14+0.86*v)),0.75);
+    var x=u*half;
+    var z=0.25+v*L*0.42+Math.pow(v,2.4)*2.1;
+    var y=v*L*0.62+Math.pow(v,1.5)*0.35-Math.pow(v,4)*0.75;
+    var cup=u*u; y+=cup*half*0.75; z-=cup*half*0.55;
+    return new THREE.Vector3(x,y,z);}
+  var pg=new THREE.BufferGeometry(), pos=[], uvs=[], ind=[];
+  for(var vi=0;vi<=VV;vi++)for(var ui=0;ui<=U;ui++){var uu=-1+2*ui/U, v=vi/VV, P3=petalPoint(uu,v); pos.push(P3.x,P3.y,P3.z); uvs.push((uu+1)/2*2.0, v*3.2);}
+  for(vi=0;vi<VV;vi++)for(ui=0;ui<U;ui++){var a0=vi*(U+1)+ui,b0=a0+1,c0=a0+U+1,d0=c0+1; ind.push(a0,c0,b0,b0,c0,d0);}
+  pg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); pg.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2)); pg.setIndex(ind); pg.computeVertexNormals();
+  var rimPts=[]; for(vi=0;vi<=VV;vi++) rimPts.push(petalPoint(-1,vi/VV)); for(vi=VV;vi>=0;vi--) rimPts.push(petalPoint(1,vi/VV));
+  var rimGeo=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rimPts),160,.085,8,false);
+  var ribPts=[]; for(vi=0;vi<=VV;vi++) ribPts.push(petalPoint(0,vi/VV)); var ribGeo=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ribPts),60,.035,6,false);
+  for(i=0;i<6;i++){
+    var ang=Math.PI/2+Math.PI/6+i*Math.PI/3; // door sits at +z (angle 90°), petals at ±30° from it
+    var pivot=new THREE.Group(); pivot.position.set(baseR*0.98*Math.cos(ang),0,baseR*0.98*Math.sin(ang)); pivot.rotation.y=Math.PI/2-ang;
+    var leaf=new THREE.Group(); var shell=new THREE.Mesh(pg,petalMat); shell.castShadow=true; leaf.add(shell);
+    var rim=new THREE.Mesh(rimGeo,woodDark); rim.castShadow=true; leaf.add(rim); leaf.add(new THREE.Mesh(ribGeo,wood));
+    pivot.add(leaf); pivot.userData={open:0}; g.add(pivot); temple.petals.push(pivot);
+  }
+  /* footing beams under the petals */
+  var beamGeo=new THREE.BoxGeometry(2.6,.18,.35);
+  for(i=0;i<6;i++){var ab=Math.PI/2+Math.PI/6+i*Math.PI/3; var bm=new THREE.Mesh(beamGeo,woodDark); bm.position.set((baseR+0.3)*Math.cos(ab),.09,(baseR+0.3)*Math.sin(ab)); bm.rotation.y=Math.PI/2-ab; bm.castShadow=true; g.add(bm);}
+  return g;
+}
+function groundMaterial(){
+  groundMat=new THREE.ShaderMaterial({
+    uniforms:{t:{value:0},glow:{value:0.6},P:{value:GLASS.slice(0,6).map(function(h){return new THREE.Color(h)})},clay:{value:new THREE.Color(0xdcb48e)},clay2:{value:new THREE.Color(0xb8906f)},gold:{value:new THREE.Color(0xc8932f)},fogC:{value:new THREE.Color(0xeadfce)}},
+    vertexShader:'varying vec2 vP;varying float vD;void main(){vP=position.xy;vec4 mv=modelViewMatrix*vec4(position,1.0);vD=-mv.z;gl_Position=projectionMatrix*mv;}',
+    fragmentShader:'uniform float t;uniform float glow;uniform vec3 P[6];uniform vec3 clay;uniform vec3 clay2;uniform vec3 gold;uniform vec3 fogC;varying vec2 vP;varying float vD;'+
+     'vec2 h2(vec2 p){return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);}'+
+     'float vor(vec2 p){vec2 i=floor(p),f=fract(p);float d1=8.0,d2=8.0;for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 g=vec2(x,y);vec2 o=h2(i+g);vec2 r=g+o-f;float d=dot(r,r);if(d<d1){d2=d1;d1=d;}else if(d<d2){d2=d;}}return sqrt(d2)-sqrt(d1);}'+
+     'vec3 pal(float x){x=fract(x)*6.0;float f=fract(x);int i=int(floor(x));vec3 a,b;if(i==0){a=P[0];b=P[1];}else if(i==1){a=P[1];b=P[2];}else if(i==2){a=P[2];b=P[3];}else if(i==3){a=P[3];b=P[4];}else if(i==4){a=P[4];b=P[5];}else{a=P[5];b=P[0];}return mix(a,b,f);}'+
+     'float ring(vec2 p,vec2 c,float R,float w){return 1.0-smoothstep(w*0.5,w,abs(length(p-c)-R));}'+
+     'void main(){vec2 p=vP;float crack=smoothstep(0.0,0.07,vor(p*1.6))*0.5+smoothstep(0.0,0.05,vor(p*5.0+3.0))*0.5;'+
+     ' vec3 c=mix(clay2,clay,crack);'+
+     ' float r=length(p);c*=mix(0.84,1.0,smoothstep(4.0,6.5,r));'+
+     /* stained-glass light pooled on the sand, front right of the temple */
+     ' vec2 sp=p-vec2(4.5,-5.0);float ell=length(vec2(sp.x*0.75+sp.y*0.45,sp.y*0.9-sp.x*0.3));float pool=smoothstep(5.0,0.8,ell);'+
+     ' float ang=atan(sp.y,sp.x);vec3 rainbow=pal(ang*0.9+length(sp)*0.25+t*0.02);'+
+     ' float lat=0.45+0.55*smoothstep(0.32,0.5,abs(fract(sp.x*0.9+sp.y*0.5)-0.5))*smoothstep(0.32,0.5,abs(fract(sp.x*0.9-sp.y*0.5)-0.5));'+
+     ' c=mix(c,c*0.45+rainbow*0.75,pool*glow*lat*0.75);'+
+     ' float fog=smoothstep(30.0,95.0,vD);c=mix(c,fogC,fog);gl_FragColor=vec4(c,1.0);}'});
+  return groundMat;
+}
+function initScene(){
+  var cv=document.getElementById('stage');
+  renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.6)); renderer.setSize(innerWidth,innerHeight);
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.95; renderer.outputEncoding=THREE.sRGBEncoding;
+  scene=new THREE.Scene(); scene.fog=new THREE.Fog(0xeadfce,35,110);
+  camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,200);
+  var hemi=new THREE.HemisphereLight(0xe8f3f2,0xc9a07a,0.8); scene.add(hemi);
+  var sun=new THREE.DirectionalLight(0xffe6c4,1.9); sun.position.set(-12,15,-8); sun.castShadow=true; sun.shadow.mapSize.set(1536,1536); sun.shadow.camera.left=-14;sun.shadow.camera.right=14;sun.shadow.camera.top=14;sun.shadow.camera.bottom=-14;sun.shadow.camera.near=1;sun.shadow.camera.far=70;sun.shadow.bias=-0.0008;sun.shadow.radius=4; scene.add(sun); temple.sun=sun;
+  var ground=new THREE.Mesh(new THREE.PlaneGeometry(240,240,1,1),groundMaterial()); ground.rotation.x=-Math.PI/2; ground.receiveShadow=false; scene.add(ground);
+  var shadowCatcher=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.ShadowMaterial({opacity:.28,color:0x6a4e3a})); shadowCatcher.rotation.x=-Math.PI/2; shadowCatcher.position.y=.005; shadowCatcher.receiveShadow=true; scene.add(shadowCatcher);
+  /* far ridges */
+  var ridgeMat=new THREE.MeshBasicMaterial({color:0xc4a891,fog:false,transparent:true,opacity:.85});
+  for(var r=0;r<2;r++){var pts=[]; for(var i=0;i<=40;i++){var x=-120+i*6; var y=0.5+Math.pow(Math.abs(Math.sin(i*0.33+r*1.7)),1.6)*(r?3.2:4.5)+Math.abs(Math.sin(i*0.91+r))*1.0; pts.push(new THREE.Vector2(x,y));} pts.push(new THREE.Vector2(120,0)); pts.push(new THREE.Vector2(-120,0)); var rg=new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(pts)),ridgeMat.clone()); rg.material.color.setHex(r?0xc9c7cc:0xbfae9f); rg.position.set(0,0,-70-r*12); scene.add(rg);}
+  loadModel(function(){ scene.add(buildTemple()); });
+  clock=new THREE.Clock();
+  addEventListener('resize',function(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
+}
+/* ================= THE REAL TEMPLE (Chris's Blender model, PT-r06a) ================= */
+var MODEL_URL = 'temple.glb';
+var MAT_COLORS={'Pine 38x76':0xbf9160,'Pine sill':0x9c7346,'Portal arch':0x94693d,'PET_rim_timber':0x94693d,'PET_fill_A_ [PT-r06a':0xc9a372,'Ply 6mm':0xd2ab78,'Cap ply skin':0xdcbc8c,'Cap ply structure':0xc49b68};
+var GLASS_COLORS={'Acrylic magenta':'#e056ae','Acrylic cyan':'#3cb5df','Acrylic green':'#55c27e','Acrylic amber':'#f1c23e','Acrylic orange':'#ef8a3b','Acrylic violet':'#9a68e0'};
+function prepModel(root){
+  var mats={};
+  function woodMat(name){ if(!mats[name]) mats[name]=new THREE.MeshStandardMaterial({color:MAT_COLORS[name]||0xd8b282,roughness:.78,metalness:0,side:THREE.DoubleSide}); return mats[name]; }
+  root.traverse(function(o){
+    if(!o.isMesh) return;
+    var n=(o.material&&o.material.name)||'';
+    if(GLASS_COLORS[n]){ o.material=holoMaterial(GLASS_COLORS[n]); o.castShadow=false; o.renderOrder=2; }
+    else if(n==='Gold paint'){ o.material=new THREE.MeshStandardMaterial({color:0xd9a441,roughness:.35,metalness:.6}); o.castShadow=true; }
+    else if(n==='PET_hinge_steel'){ o.material=new THREE.MeshStandardMaterial({color:0x8d8d92,roughness:.4,metalness:.7}); }
+    else { o.material=woodMat(n); o.castShadow=true; }
+    o.receiveShadow=false;
+  });
+  var parts={rings:[],glass:[],frame:[],petals:[]};
+  root.traverse(function(o){
+    var nm=o.name||'';
+    if(/^CLAD_[A-J]$/.test(nm)) parts.rings.push(o);
+    else if(/^GLASS_[A-J]$/.test(nm)) parts.glass.push(o);
+    else if(/^FRAME_/.test(nm)) parts.frame.push(o);
+    else if(/^PETAL_A0\d$/.test(nm)) parts.petals.push(o);
+    else if(nm==='CAP') parts.cap=o;
+    else if(nm==='PORTAL') parts.portal=o;
+  });
+  [].concat(parts.rings,parts.glass,parts.frame,parts.petals,[parts.cap,parts.portal]).forEach(function(o){ if(o){ o.userData.basePos=o.position.clone(); o.userData.baseScale=o.scale.clone(); o.userData.baseQuat=o.quaternion.clone(); o.userData.ring=(o.name.match(/_([A-J])$/)||[0,'A'])[1].charCodeAt(0)-65; }});
+  parts.petals.forEach(function(pv){ var r=new THREE.Vector3(pv.position.x,0,pv.position.z).normalize(); pv.userData.axis=new THREE.Vector3(r.z,0,-r.x); pv.userData.open=0; });
+  return parts;
+}
+function loadModel(onFail){
+  if(typeof THREE.GLTFLoader!=='function'){ onFail(); return; }
+  var onLoad=function(g){
+    var holder=new THREE.Group(); holder.rotation.y=-Math.PI/2; holder.add(g.scene); scene.add(holder);
+    temple.model=holder; temple.parts=prepModel(g.scene);
+    holder.traverse(function(o){ if(o.material&&o.material.opacity!==undefined){} });
+    document.body.classList.add('model-ready');
+  };
+  var onErr=function(err){ console.warn('Temple model did not load, using the drawn temple instead',err); onFail(); };
+  if(/\.json$/.test(MODEL_URL)){
+    fetch(MODEL_URL).then(function(r){return r.json()}).then(function(j){var bin=atob(j.glb),buf=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i);new THREE.GLTFLoader().parse(buf.buffer,'',onLoad,onErr);}).catch(onErr);
+  } else { new THREE.GLTFLoader().load(MODEL_URL,onLoad,undefined,onErr); }
+}
+var _q=new THREE.Quaternion();
+function updateModel(p,exp,chS,chL,chP,chG){
+  var P=temple.parts;
+  P.rings.forEach(function(o){ var k=1+exp*(chL?0.06:0.16)+exp*o.userData.ring*0.006; o.scale.set(o.userData.baseScale.x*k,o.userData.baseScale.y,o.userData.baseScale.z*k); o.position.y=o.userData.basePos.y+exp*o.userData.ring*0.09;
+    var vis=1; if(chS) vis=0.22; if(chG) vis=0.35; if(chP) vis=0.5; o.material.transparent=vis<1; o.material.opacity=vis; o.material.depthWrite=vis>=1; });
+  P.glass.forEach(function(o){ var k=1+exp*(chG?0.08:0.22); o.scale.set(o.userData.baseScale.x*k,o.userData.baseScale.y,o.userData.baseScale.z*k); o.position.y=o.userData.basePos.y+exp*0.6; });
+  P.frame.forEach(function(o){ var k=1+exp*(chS?0.0:0.06); o.scale.set(o.userData.baseScale.x*k,o.userData.baseScale.y,o.userData.baseScale.z*k); o.position.y=o.userData.basePos.y+exp*o.userData.ring*0.05;
+    var vis=(chL||chG)?0.4:1; o.material.transparent=vis<1; o.material.opacity=vis; });
+  if(P.cap) P.cap.position.y=P.cap.userData.basePos.y+exp*2.2;
+  if(P.portal) P.portal.position.x=P.portal.userData.basePos.x+exp*1.4;
+  P.petals.forEach(function(pv){ var target=(chP?0.42:0.0)+exp*0.18; pv.userData.open+= (target-pv.userData.open)*0.08; _q.setFromAxisAngle(pv.userData.axis,pv.userData.open); pv.quaternion.copy(_q).multiply(pv.userData.baseQuat); });
+}
+
+function lerp(a,b,t){return a+(b-a)*t}
+function ramp(p,a,b){return Math.max(0,Math.min(1,(p-a)/(b-a)))}
+function ease(x){return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2}
+var camPos=new THREE.Vector3(), camLook=new THREE.Vector3();
+function updateScene(p,dt){
+  var t=clock.getElapsedTime(); var apex=temple.model?6.0:(N-RING0)*GEN_Z;
+  /* camera path */
+  var pos,look;
+  if(p<0.14){var e=ease(ramp(p,0,0.14)); pos=[lerp(2.4,2.2,e),lerp(2.6,2.3,e),lerp(20,13,e)]; look=[0,lerp(3.2,3.0,e),0];}
+  else if(p<0.34){e=ease(ramp(p,0.14,0.34)); pos=[lerp(2.2,0.4,e),lerp(2.3,1.6,e),lerp(13,6.5,e)]; look=[0,lerp(3.0,2.4,e),0];}
+  else if(p<0.54){e=ease(ramp(p,0.34,0.54)); pos=[lerp(0.4,0,e),lerp(1.6,1.5,e),lerp(6.5,0.6,e)]; look=[0,lerp(2.4,apex,e),lerp(0,0.2,e)];}
+  else if(p<0.60){e=ease(ramp(p,0.54,0.60)); pos=[lerp(0,-13,e),lerp(1.5,8,e),lerp(0.6,20,e)]; look=[0,lerp(apex,3.2,e),0];}
+  else if(p<0.88){e=ramp(p,0.60,0.88); var a=-0.58+e*1.9; var rad=24; pos=[Math.sin(a)*rad,8.0,Math.cos(a)*rad]; look=[0,3.2,0];}
+  else {e=ease(ramp(p,0.88,1)); pos=[lerp(Math.sin(1.32)*24,3.5,e),lerp(8,2.8,e),lerp(Math.cos(1.32)*24,19,e)]; look=[0,3.0,0];}
+  camPos.lerp(new THREE.Vector3(pos[0],pos[1],pos[2]),0.08); camLook.lerp(new THREE.Vector3(look[0],look[1],look[2]),0.08);
+  camera.position.copy(camPos); camera.lookAt(camLook);
+  /* the pieces: 0.56 struts · 0.64 lattice · 0.72 petals · 0.80 light */
+  var exp=ease(ramp(p,0.55,0.60))*(1-ease(ramp(p,0.84,0.90)));
+  var chS=ramp(p,0.56,0.63)>0&&p<0.64, chL=p>=0.64&&p<0.72, chP=p>=0.72&&p<0.80, chG=p>=0.80&&p<0.89;
+  if(temple.model){ updateModel(p,exp,chS,chL,chP,chG); } else if(temple.struts){
+  var m4=new THREE.Matrix4(), pm=new THREE.Vector3(), pq=new THREE.Quaternion(), ps=new THREE.Vector3();
+  for(var i=0;i<temple.strutBase.length;i++){temple.strutBase[i].decompose(pm,pq,ps); var out=new THREE.Vector3(pm.x,0,pm.z).normalize().multiplyScalar(exp*(chS?0.0:1.2)); m4.compose(pm.clone().add(out),pq,ps); temple.struts.setMatrixAt(i,m4);} temple.struts.instanceMatrix.needsUpdate=true;
+  temple.panels.forEach(function(mesh){var d=mesh.userData; var o=exp*(d.holo?3.2:2.0)*(chL&&!d.holo?0.35:1)*(chG&&d.holo?0.4:1); mesh.position.copy(d.normal).multiplyScalar(o); mesh.position.y+=exp*(d.ring-RING0)*0.08;
+    var vis=1; if(chS) vis=0.25; if(chL&&d.holo) vis=0.35; if(chP) vis=0.45; mesh.material.opacity=d.holo?0.72*Math.max(vis,0.5):1; if(!d.holo){mesh.material.transparent=true;mesh.material.opacity=vis;} });
+  temple.stupa.position.y=apex-0.1+exp*2.4;
+  temple.petals.forEach(function(pv,i){var target=chP?0.32:0.0; pv.userData.open=lerp(pv.userData.open,target+exp*0.22,0.08); pv.children[0].rotation.x=pv.userData.open; pv.position.y=exp*(chP?0.5:0.15);}); temple.door.position.y=exp*0.4;
+  temple.struts.material.opacity=chL||chP||chG?0.35:1; temple.struts.material.transparent=true;
+  }
+  /* light: dawn to blaze */
+  var glow=lerp(0.85,1.05,ramp(p,0.3,0.95)); if(chG) glow=1.3;
+  holoMats.forEach(function(m){m.uniforms.t.value=t;m.uniforms.glow.value=glow;});
+  groundMat.uniforms.t.value=t; groundMat.uniforms.glow.value=lerp(0.35,1.0,ramp(p,0.3,0.95))*(chG?1.3:1);
+  temple.sun.intensity=lerp(1.6,2.1,ramp(p,0.5,1));
+}
+var running=true;
+function loop(){
+  requestAnimationFrame(loop); if(!running) return;
+  if(mode==='journey'){var j=document.getElementById('journey'); var max=j.offsetHeight-innerHeight; progress=Math.max(0,Math.min(1,scrollY/max)); }
+  smooth+= (progress-smooth)*(reduce?1:0.12);
+  updateScene(mode==='journey'?smooth:1.0);
+  renderer.render(scene,camera);
+}
+/* chapters */
+var chapters=[].slice.call(document.querySelectorAll('.ch'));
+function updateChapters(){var p=progress; chapters.forEach(function(c){var a=+c.dataset.from,b=+c.dataset.to; c.classList.toggle('on',p>=a&&p<b);}); document.getElementById('scrollhint').style.opacity=p<0.05?1:0;}
+addEventListener('scroll',function(){ if(mode!=='journey') return; var j=document.getElementById('journey'); var max=j.offsetHeight-innerHeight; progress=Math.max(0,Math.min(1,scrollY/max)); updateChapters(); },{passive:true});
+
+if(T3){ initScene(); if(reduce){progress=1;smooth=1;} updateChapters(); loop(); }
+else { document.getElementById('stage').remove(); document.body.classList.add('form'); }
+
+function enterForm(){ mode='form'; document.body.classList.add('form'); window.scrollTo(0,0); progress=1; }
+function leaveForm(){ mode='journey'; document.body.classList.remove('form'); var j=document.getElementById('journey'); window.scrollTo(0,j.offsetHeight-innerHeight); progress=1; smooth=0.95; updateChapters(); }
+document.getElementById('beginBtn').addEventListener('click',enterForm);
+document.getElementById('backToJourney').addEventListener('click',leaveForm);
+
+/* ================= FORM ================= */
+var PAL=HOLO;
+var GIFTS=['Building and carpentry','Welding and metalwork','CNC and digital fabrication','Electrics, lighting and power','Sound, DJing and music production','Live instruments and voice','Art, painting and decor','Sacred geometry and design','Kitchen and feeding the tribe','Healing, bodywork and breathwork','Ceremony and space holding','Movement, dance and performance','Logistics and getting things done','Photo and video','Tech and digital magic'];
+var SIGNS=[['Hands ready to build','happy to get dirty'],['Heart ready to crack open','even wider'],['Glimmer in the eye',''],['Cosmic laugh in the belly',''],['Raises the vibration','wherever they go'],['Lives the SACRED agreements',''],['All in, build to strike',''],["Everyone's new favourite person",'']];
+var ARCH=[['Sovereign','holds the vision, leads with heart'],['Warrior','protects, commits, gets it done'],['Magician','sees beneath, transforms'],['Lover','opens hearts, brings beauty and play']];
+var ELEM=['Fire','Earth','Air','Water'];
+function $(s,r){return (r||document).querySelector(s)}
+function $all(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function tile(type,name,val,text,sub,i,n){var c=PAL[i%PAL.length];return '<label style="--c:'+c+'"><input type="'+type+'" '+(name?'name="'+name+'"':'')+' value="'+esc(val)+'"><span data-n="'+String(n).padStart(2,'0')+'">'+esc(text)+(sub?'<small>'+esc(sub)+'</small>':'')+'</span></label>';}
+$('#gifts').innerHTML=GIFTS.map(function(g,i){return tile('checkbox','',g,g,'',i,i+1)}).join('');
+$('#signs').innerHTML=SIGNS.map(function(s,i){return tile('checkbox','',s[0],s[0],s[1],i+2,i+1)}).join('');
+$('#arch').innerHTML=ARCH.map(function(a,i){return tile('radio','n_archetype',a[0],a[0],a[1],i,i+1)}).join('');
+$('#elem').innerHTML=ELEM.map(function(e,i){return tile('radio','n_element',e,e,'',[4,2,1,0][i],i+1)}).join('');
+
+/* the temple from above: 12 petals outside (gifts fill 15 lattice cells on the outer ring), 8 inner cells (signs), stupa (archetype) */
+function P(r,a){return (r*Math.cos(a)).toFixed(2)+' '+(r*Math.sin(a)).toFixed(2)}
+function lobe(r0,r1,a0,a1){var am=(a0+a1)/2,rb=r0+(r1-r0)*0.55,big=(a1-a0)>Math.PI?1:0;return 'M'+P(r0,a0)+' A'+r0+' '+r0+' 0 '+big+' 1 '+P(r0,a1)+' L'+P(rb,a1)+' Q'+P(r1*0.98,a1-(a1-a0)*0.42)+' '+P(r1,am)+' Q'+P(r1*0.98,a0+(a1-a0)*0.42)+' '+P(rb,a0)+' Z';}
+function buildRosette(svg){
+  var s='',g=-Math.PI/2,i,a0,a1,n;
+  for(i=0;i<18;i++){var a=g+i*Math.PI/9;s+='<line class="cons" x1="0" y1="0" x2="'+(48*Math.cos(a)).toFixed(2)+'" y2="'+(48*Math.sin(a)).toFixed(2)+'"/>';}
+  [48,36,24,13].forEach(function(r){s+='<circle class="arc" r="'+r+'"/>'});
+  /* petals */
+  for(i=0;i<12;i++){a0=g+i*Math.PI/6+0.06;a1=g+(i+1)*Math.PI/6-0.06;s+='<path class="petal" d="'+lobe(36,49,a0,a1)+'"/>';}
+  n=GIFTS.length; for(i=0;i<n;i++){a0=g+i*2*Math.PI/n+0.03;a1=g+(i+1)*2*Math.PI/n-0.03;s+='<path data-k="gift" data-i="'+i+'" style="--c:'+PAL[i%PAL.length]+'" d="'+lobe(24,35,a0,a1)+'"/>';}
+  n=SIGNS.length; for(i=0;i<n;i++){a0=g+i*2*Math.PI/n+0.05;a1=g+(i+1)*2*Math.PI/n-0.05;s+='<path data-k="sign" data-i="'+i+'" style="--c:'+PAL[(i+2)%PAL.length]+'" d="'+lobe(13,23,a0,a1)+'"/>';}
+  s+='<circle data-k="arch" r="9"/><circle class="arc" r="4"/>';
+  svg.innerHTML=s;
+}
+$all('.rosette').forEach(buildRosette);
+function paintOne(svg,n){
+  $all('[data-k="gift"]',svg).forEach(function(p){p.classList.toggle('on',(n.gifts||[]).indexOf(GIFTS[+p.dataset.i])>-1)});
+  $all('[data-k="sign"]',svg).forEach(function(p){p.classList.toggle('on',(n.signs||[]).indexOf(SIGNS[+p.dataset.i][0])>-1)});
+  var ai=ARCH.map(function(a){return a[0]}).indexOf(n.archetype); var c=$('[data-k="arch"]',svg); c.style.setProperty('--c',ai>-1?PAL[ai]:'transparent'); c.classList.toggle('on',ai>-1);
+  var ei=ELEM.indexOf(n.element); $all('.petal',svg).forEach(function(l){l.style.fill=ei>-1?PAL[[4,2,1,0][ei]]:'';l.style.fillOpacity=ei>-1?'.35':'';});
+}
+function paintRosette(n){$all('.rosette').forEach(function(svg){if(!svg.closest('.plates'))paintOne(svg,n)})}
+
+var STORE_KEY='mahala_nominations_draft_v3';
+var state={nominees:[],editing:-1,batchId:'B'+Date.now().toString(36)};
+var order=['you','n1','n2','n3','received','done']; var current='you';
+var inAppsScript=(typeof google!=='undefined'&&google.script&&google.script.run);
+var demo=!inAppsScript&&!SCRIPT_URL; if(demo) document.body.classList.add('demo');
+var TEXT_IDS=['n_name','n_called','n_email','n_phone','n_location','n_social','n_known','n_story','n_moment','n_gifts_more','n_words','n_calling','n_mindful'];
+var RADIOS=['n_burn','n_archetype','n_element','n_sa','n_mention','n_voice']; var MULTIS=['n_gifts','n_signs'];
+function radioVal(n){var r=$('input[name="'+n+'"]:checked');return r?r.value:''}
+function multiVals(k){return $all('[data-multi="'+k+'"] input:checked').map(function(i){return i.value})}
+function readNominee(){var o={};TEXT_IDS.forEach(function(id){o[id.slice(2)]=$('#'+id).value.trim()});RADIOS.forEach(function(n){o[n.slice(2)]=radioVal(n)});MULTIS.forEach(function(k){o[k.slice(2)]=multiVals(k)});return o}
+function writeNominee(o){o=o||{};TEXT_IDS.forEach(function(id){$('#'+id).value=o[id.slice(2)]||''});RADIOS.forEach(function(n){$all('input[name="'+n+'"]').forEach(function(r){r.checked=(r.value===o[n.slice(2)])})});MULTIS.forEach(function(k){var v=o[k.slice(2)]||[];$all('[data-multi="'+k+'"] input').forEach(function(i){i.checked=v.indexOf(i.value)>-1})});$all('.f.invalid').forEach(function(f){f.classList.remove('invalid')});paintRosette(o)}
+function readNominator(){return {name:$('#r_name').value.trim(),email:$('#r_email').value.trim(),role:radioVal('r_role')}}
+function show(step){
+  $all('.screen').forEach(function(s){s.classList.toggle('active',s.dataset.step===step)}); current=step;
+  var idx=state.editing>=0?state.editing:state.nominees.length; var c=$('[data-soul-count]'); if(c) c.textContent='Soul '+String(idx+1).padStart(2,'0');
+  var nm=($('#n_called').value||$('#n_name').value||'').trim().split(' ')[0];
+  $all('[data-soul-name]').forEach(function(el,i){var b=i===0?'Their essence':'Their invitation';el.textContent=nm?b.replace('Their',nm+"'s"):b});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function validate(step){var sec=$('.screen[data-step="'+step+'"]'),ok=true,first=null;$all('.f[data-required]',sec).forEach(function(f){var inp=$('input,textarea',f);var v=(inp.value||'').trim();var bad=!v||(f.hasAttribute('data-email')&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));f.classList.toggle('invalid',bad);if(bad){ok=false;if(!first)first=inp}});if(first)first.focus();return ok}
+document.addEventListener('input',function(e){var f=e.target.closest&&e.target.closest('.f.invalid');if(f)f.classList.remove('invalid');saveDraft()});
+document.addEventListener('change',function(){saveDraft();if(current==='n2'){paintRosette(readNominee())}});
+function saveDraft(){try{localStorage.setItem(STORE_KEY,JSON.stringify({nominator:readNominator(),nominees:state.nominees,editing:state.editing,inProgress:readNominee(),batchId:state.batchId}))}catch(e){}}
+function loadDraft(){try{var d=JSON.parse(localStorage.getItem(STORE_KEY)||'null');if(!d)return;$('#r_name').value=d.nominator.name||'';$('#r_email').value=d.nominator.email||'';$all('input[name="r_role"]').forEach(function(r){r.checked=r.value===d.nominator.role});state.nominees=d.nominees||[];state.editing=typeof d.editing==='number'?d.editing:-1;state.batchId=d.batchId||state.batchId;writeNominee(d.inProgress)}catch(e){}}
+function clearDraft(){try{localStorage.removeItem(STORE_KEY)}catch(e){}}
+document.addEventListener('click',function(e){var t=e.target.closest('[data-next],[data-back]');if(!t)return;var i=order.indexOf(current);if(t.hasAttribute('data-next')){if(!validate(current))return;show(order[i+1])}else{if(current==='n1'&&state.nominees.length&&state.editing<0){renderSouls();show('received');return}show(order[i-1])}});
+var ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+$('#receiveBtn').addEventListener('click',function(){
+  if(!validate('n3'))return; var n=readNominee();
+  if(state.editing>=0){state.nominees[state.editing]=n;state.editing=-1}else state.nominees.push(n);
+  var first=(n.called||n.name).split(' ')[0];
+  $('#receivedTitle').innerHTML='<i>'+esc(first)+"'s</i> temple"; $('#plateNo').textContent='Pl. '+ROMAN[(state.nominees.length-1)%12]; $('#plateCap').textContent=('Pl. '+ROMAN[(state.nominees.length-1)%12]+' · '+first+' · '+(n.location||'').split(',')[0]).toUpperCase();
+  paintRosette(n); renderSouls(); var keep=$('#ros_large').innerHTML; writeNominee({}); $('#ros_large').innerHTML=keep; saveDraft(); show('received');
+});
+$('#anotherBtn').addEventListener('click',function(){state.editing=-1;writeNominee({});saveDraft();show('n1')});
+function renderSouls(){var ul=$('#soulList');ul.innerHTML='';state.nominees.forEach(function(n,i){var li=document.createElement('li');li.innerHTML='<span class="no">No. '+String(i+1).padStart(2,'0')+'</span><div class="nm">'+esc(n.called||n.name)+'<small>'+esc(n.location)+'</small></div><div class="tools"><button data-edit="'+i+'">Edit</button><button data-remove="'+i+'">Remove</button></div>';ul.appendChild(li)});$('#sealSendBtn').disabled=state.nominees.length===0}
+$('#soulList').addEventListener('click',function(e){var ed=e.target.getAttribute('data-edit'),rm=e.target.getAttribute('data-remove');if(ed!==null){state.editing=+ed;writeNominee(state.nominees[+ed]);saveDraft();show('n1')}if(rm!==null){state.nominees.splice(+rm,1);renderSouls();saveDraft();if(!state.nominees.length){state.editing=-1;show('n1')}}});
+$('#sealSendBtn').addEventListener('click',function(){
+  var btn=this;btn.disabled=true;btn.firstChild.textContent='Sending';$('#sendErr').style.display='none';
+  var payload={batchId:state.batchId,nominator:readNominator(),nominees:state.nominees,hp:$('#hp_field').value,userAgent:navigator.userAgent};
+  function ok(){var c=state.nominees.length;var names=state.nominees.map(function(n){return (n.called||n.name).split(' ')[0]});$('#doneLine').textContent=(c===1?names[0]+' is':c===2?names.join(' and ')+' are':names.slice(0,-1).join(', ')+' and '+names[c-1]+' are')+' in the ledger. We write each invitation from what you told us, and the invitations go out at the end of October.';var dp=$('#donePlates');dp.innerHTML='';state.nominees.forEach(function(n,i){var f=document.createElement('figure');f.innerHTML='<svg class="rosette" viewBox="-50 -50 100 100"></svg><figcaption>Pl. '+ROMAN[i%12]+' · '+esc((n.called||n.name).split(' ')[0])+'</figcaption>';dp.appendChild(f);var sv=f.querySelector('svg');buildRosette(sv);paintOne(sv,n)});clearDraft();state.nominees=[];state.editing=-1;state.batchId='B'+Date.now().toString(36);btn.firstChild.textContent='Seal and send';btn.disabled=false;show('done')}
+  function fail(){btn.firstChild.textContent='Seal and send';btn.disabled=false;$('#sendErr').style.display='block'}
+  if(inAppsScript){google.script.run.withSuccessHandler(ok).withFailureHandler(fail).submitNominations(payload)}
+  else if(SCRIPT_URL){fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).then(ok).catch(fail)}
+  else{console.log('[Mahala preview] payload',payload);window.__lastPayload=payload;setTimeout(ok,500)}
+});
+$('#restartBtn').addEventListener('click',function(){writeNominee({});show('n1')});
+loadDraft();
+</script>
+</body>
+</html>
