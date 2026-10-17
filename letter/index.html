@@ -204,7 +204,8 @@ async function loadLetter(){
 function render(n){
   const signs=SIGNS.map((s,i)=>'<li class="'+(n.signs.includes(i)?"lit":"")+'"><img src="assets/sign-'+(i+1)+'.png" alt=""><span>'+esc(s)+'</span></li>').join("");
   const force=(n.element?'There is '+esc(n.element)+' in how you move, and the '+esc(n.arch)+' moves through you.':'The '+esc(n.arch)+' moves through you.')+' This is not your horoscope. It is a way we have of seeing each other, and we feel this force is very strong in you.';
-  const nextUrl=INVITE_URL+(INVITE_URL.includes("?")?"&":"?")+"name="+encodeURIComponent(n.name);
+  const ref=new URLSearchParams(location.search).get("l")||"";
+  const nextUrl=INVITE_URL+(INVITE_URL.includes("?")?"&":"?")+"name="+encodeURIComponent(n.name)+(ref?"&ref="+encodeURIComponent(ref):"");
   $("#sheet").innerHTML=
    '<img class="emblem" src="assets/emblem.png" alt="">'+
    '<p class="cap kicker">A call to the playa</p>'+
