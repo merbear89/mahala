@@ -73,7 +73,7 @@ body.landed .env-wrap{opacity:1;transform:translate(-50%,-50%) rotate(-1.5deg);a
 .env .front::before{content:"";position:absolute;inset:0;background:#F7F1E6;clip-path:polygon(0 0,50% 56%,100% 0,100% 100%,0 100%)}
 .env .front::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.35),rgba(255,255,255,0) 40%),radial-gradient(120% 90% at 50% 120%,rgba(194,177,140,.18),rgba(194,177,140,0) 60%);clip-path:polygon(0 0,50% 56%,100% 0,100% 100%,0 100%)}
 .env .flap{position:absolute;left:0;right:0;top:0;height:60%;z-index:3;transform-origin:50% 0;transition:transform 1s var(--ease),z-index 0s .5s}
-.env .flap i{position:absolute;inset:0;background:#F2EADD;clip-path:polygon(0 0,100% 0,50% 93%);filter:drop-shadow(0 2px 2px rgba(42,34,28,.12))}
+.env .flap i{position:absolute;inset:0;background:#F2EADD;backface-visibility:visible;clip-path:polygon(0 0,100% 0,50% 93%);filter:drop-shadow(0 2px 2px rgba(42,34,28,.12))}
 .env .seal{position:absolute;left:50%;top:57%;width:clamp(62px,18%,86px);aspect-ratio:1;transform:translate(-50%,-50%);z-index:4;border-radius:50%;padding:5px;background:radial-gradient(circle at 35% 30%,#fff,#efe5d6 70%);box-shadow:0 8px 18px -8px rgba(42,34,28,.6),inset 0 0 0 1px rgba(42,34,28,.08);transition:opacity .5s var(--ease),transform .7s var(--ease)}
 .env .seal img{width:100%;height:100%;border-radius:50%}
 .env .to{position:absolute;left:0;right:0;bottom:6%;z-index:4;text-align:center;pointer-events:none;transition:opacity .4s}
@@ -89,7 +89,7 @@ body.opening .env .to{opacity:0}
 body.opening .env .flap{transform:rotateX(180deg);z-index:0}
 body.opening .env .card{transform:translateY(-62%)}
 body.lifted .env .card{z-index:5;transform:translateY(-62%) scale(1.04)}
-body.lifted .env .back,body.lifted .env .front,body.lifted .env .flap{transition:transform 1s var(--ease),opacity .8s var(--ease);transform:translateY(40vh);opacity:0}
+body.lifted .env .back,body.lifted .env .front,body.lifted .env .flap{transition:transform 1s var(--ease),opacity .45s var(--ease);transform:translateY(30vh);opacity:0}
 .tap.hide{opacity:0!important;pointer-events:none!important;animation:none}
 
 /* the letter itself: plain document flow, nothing hides on fast scroll */
@@ -248,7 +248,7 @@ let opened=false;
 function open(){
   if(opened) return; opened=true;
   const B=document.body, reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-  $("#tap").classList.add("hide");
+  $("#tap").style.display="none";
   B.classList.remove("landed"); B.classList.add("opening");
   setTimeout(()=>B.classList.add("lifted"), reduce?0:1050);
   setTimeout(()=>{
