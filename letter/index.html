@@ -72,7 +72,7 @@ body.landed .env-wrap,body.opening .env-wrap{opacity:1;transform:translate(-50%,
 .env:focus-visible{outline:2px solid var(--warm);outline-offset:10px}
 .env .back{position:absolute;inset:0;background:var(--grain),linear-gradient(160deg,var(--env),var(--env-2));box-shadow:0 50px 90px -40px rgba(0,0,0,.75),0 2px 8px rgba(0,0,0,.25)}
 .env .card{position:absolute;left:4%;right:4%;top:5%;height:90%;z-index:1;background:var(--grain),var(--paper);display:flex;flex-direction:column;align-items:center;padding-top:9%;gap:10px;transition:transform 1.1s var(--out)}
-.env .card svg{width:15%;color:var(--wax)}
+.env .card svg{width:15%;height:22%;color:var(--wax)}
 .env .card i{display:block;width:44%;height:1px;background:rgba(42,34,28,.18)}
 .env .front{position:absolute;inset:0;z-index:2;pointer-events:none}
 .env .front .l,.env .front .r,.env .front .b{position:absolute;inset:0;background:var(--grain),linear-gradient(170deg,var(--env-2),var(--env-3))}
@@ -82,14 +82,14 @@ body.landed .env-wrap,body.opening .env-wrap{opacity:1;transform:translate(-50%,
 .env .front .b::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 30%)}
 .env .flap{position:absolute;left:0;right:0;top:0;height:60%;z-index:3;transform-origin:50% 0;transition:transform .9s var(--ease) .25s}
 .env .flap i{position:absolute;inset:0;background:var(--grain),linear-gradient(180deg,#ECE2D0,var(--env));clip-path:polygon(0 0,100% 0,50% 100%);filter:drop-shadow(0 3px 3px rgba(42,34,28,.18))}
-.env .seal{position:absolute;left:50%;top:57%;width:clamp(64px,19%,108px);aspect-ratio:1;transform:translate(-50%,-50%);z-index:4}
+.env .seal{position:absolute;left:50%;top:52%;width:clamp(64px,19%,108px);aspect-ratio:1;transform:translate(-50%,-50%);z-index:4}
 .env .seal .half{position:absolute;inset:0;transition:transform .7s var(--out),opacity .6s var(--ease) .35s}
 .env .seal .half.a{clip-path:polygon(0 0,58% 0,44% 30%,60% 52%,42% 74%,54% 100%,0 100%)}
 .env .seal .half.b{clip-path:polygon(58% 0,100% 0,100% 100%,54% 100%,42% 74%,60% 52%,44% 30%)}
 .wax{position:absolute;inset:0;border-radius:47% 53% 50% 50% / 52% 48% 52% 48%;background:radial-gradient(circle at 34% 30%,var(--wax-hi),var(--wax) 48%,var(--wax-lo) 100%);box-shadow:0 8px 16px -6px rgba(60,10,30,.55),inset 0 -3px 6px rgba(0,0,0,.25),inset 0 3px 4px rgba(255,255,255,.12)}
 .wax::before{content:"";position:absolute;inset:14%;border-radius:50%;box-shadow:inset 0 2px 3px rgba(0,0,0,.35),inset 0 -1px 2px rgba(255,255,255,.18);background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.06),rgba(0,0,0,.06))}
-.wax svg{position:absolute;left:28%;top:30%;width:44%;color:rgba(60,8,28,.55);filter:drop-shadow(0 1px 0 rgba(255,255,255,.18))}
-.env .to{position:absolute;left:0;right:0;top:67%;z-index:4;text-align:center;pointer-events:none;font-family:var(--script);font-size:clamp(40px,9vw,64px);line-height:1.1;color:var(--ink);transition:opacity .5s}
+.wax svg{position:absolute;left:25%;top:30%;width:50%;height:40%;color:rgba(255,190,214,.42);filter:drop-shadow(0 -1px 0 rgba(40,0,15,.55))}
+.env .to{position:absolute;left:0;right:0;top:70%;z-index:4;text-align:center;pointer-events:none;font-family:var(--script);font-size:clamp(40px,9vw,64px);line-height:1.1;color:var(--ink);transition:opacity .5s}
 .break{position:fixed;left:50%;bottom:max(9vh,calc(env(safe-area-inset-bottom,0px) + 28px));transform:translateX(-50%);z-index:6;font-family:var(--text);font-size:12px;font-weight:400;letter-spacing:.3em;text-indent:.3em;text-transform:uppercase;color:var(--warm);background:rgba(20,14,10,.35);border:1px solid rgba(244,239,230,.55);border-radius:999px;padding:14px 28px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .6s,background .25s}
 .break:hover{background:rgba(244,239,230,.12)}
 .break:focus-visible{outline:2px solid var(--warm);outline-offset:4px}
@@ -119,7 +119,7 @@ body.reading.shown .sheet{opacity:1;transform:none}
 .sheet .soft{font-style:italic;color:var(--ink-2);font-size:clamp(17px,2vw,19px)}
 .sheet .force{display:flex;gap:18px;align-items:flex-start}
 .sheet .force .mark{flex:none;width:76px;aspect-ratio:3/4;border-radius:4px;background:linear-gradient(160deg,#F3D9A6,#E9A9C9 45%,#9FD6E6);display:grid;place-items:center;box-shadow:0 6px 14px -8px rgba(42,34,28,.6)}
-.sheet .force .mark svg{width:56%;color:rgba(78,11,36,.75)}
+.sheet .force .mark svg{width:56%;height:40%;color:rgba(78,11,36,.75)}
 .sheet .force h3{margin:0;font-family:var(--verse);font-style:italic;font-weight:500;font-size:clamp(23px,3vw,27px);line-height:1.2}
 .sheet .force p{margin-top:8px}
 .sheet blockquote{margin:30px 0 0;padding:20px 0;border-top:1px solid rgba(42,34,28,.18);border-bottom:1px solid rgba(42,34,28,.18);font-family:var(--verse);font-style:italic;font-size:clamp(21px,2.8vw,24px);line-height:1.5}
